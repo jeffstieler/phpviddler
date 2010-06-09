@@ -510,52 +510,22 @@ class Phpviddler {
 	/ returns: array or xml
 	*/
 	function sendRequest($method=null,$args=null,$postmethod='get') {
-	
-		// Convert array to string
 
-    // tom@punkave.com: this used to break file uploads. CURLOPT_POSTFIELDS
-    // is only checked for names beginning with @ if it's an array, and
-    // that's how PHP's cURL wrapper recognizes file uploads. This in itself
-    // is a potential security hole (because PHP programmers have no idea
-    // that an @ prefix will do this if they pass an array), and I've opened 
-    // a PHP bug report on that subject (#46439), but for viddler API 
-    // purposes it's safe because viddler doesn't want or accept file 
-    // uploads for inappropriate fields. Someday PHP's behavior may
-    // change to the new API I suggest in that bug report (requiring
-    // some changes here). We can hope.
-	
-	if ($method == 'viddler.users.auth') {
-		$reqURL = $this->viddlerRESTSSL.'?api_key='.$this->apiKey.'&method='.$method;
-	} else {
 		$reqURL = $this->viddlerREST.'?api_key='.$this->apiKey.'&method='.$method;
-	}
+		$flattened_args = is_array($args) ? $this->buildArguments($args) : $args;
 		
-		
-	if ($postmethod == 'get') {
-      if (is_array($args)) 
-      {
-        $getArgs = $this->buildArguments($args);
-      }	
-      else
-      {
-        $getArgs = $args;
-      }
-			$reqURL .= '&'.$getArgs;
-		}
-		
+		if ($postmethod == 'get')
+			$reqURL .= '&'.$flattened_args;
+
 		$curl_handle = curl_init();
 		curl_setopt ($curl_handle, CURLOPT_URL, $reqURL);
 		curl_setopt ($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt ($curl_handle, CURLOPT_CONNECTTIMEOUT, 1);
+		curl_setopt ($curl_handle, CURLOPT_CONNECTTIMEOUT, 10);
 		curl_setopt ($curl_handle, CURLOPT_HEADER, 0);
 		curl_setopt ($curl_handle, CURLOPT_TIMEOUT, 0);
 		if ($postmethod == 'post') {
 			curl_setopt($curl_handle, CURLOPT_POST, 1);
-			if ($method == 'viddler.videos.upload'){
-				curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $args);
-			} else {
-				curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $this->buildArguments($args));
-			}
+			curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $args);
 		}
 		$response = curl_exec($curl_handle);
 		
@@ -575,7 +545,6 @@ class Phpviddler {
 		} else {
 			return $response;
 		}
-        
 	} // End sendRequest();
 
 } // end phpviddler
