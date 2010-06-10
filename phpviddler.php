@@ -511,7 +511,12 @@ class Phpviddler {
 	*/
 	function sendRequest($method=null,$args=null,$postmethod='get') {
 
-		$reqURL = $this->viddlerREST.'?api_key='.$this->apiKey.'&method='.$method;
+		if ($method == 'viddler.users.auth') {
+			$reqURL = $this->viddlerRESTSSL;
+		} else {
+			$reqURL = $this->viddlerREST;
+		}
+		$reqURL .= '?api_key='.$this->apiKey.'&method='.$method;
 		$flattened_args = is_array($args) ? $this->buildArguments($args) : $args;
 		
 		if ($postmethod == 'get')
